@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buttbet Official - Sistem Tracking Produksi Jersey (Offline)</title>
+    <!-- Tailwind CSS untuk Desain Premium -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Kustom scrollbar untuk estetika modern */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* CSS Cetak Khusus agar Presisi 1 Halaman A4 Portrait */
+        @media print {
+            @page {
+                size: portrait;
+                margin: 5mm 8mm 5mm 8mm; /* Margin sangat diperkecil */
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 10px !important; /* Font diturunkan global */
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            /* Memaksa layout cetak tetap ringkas dalam satu viewport */
+            #spk-print-template {
+                max-height: 100vh;
+                overflow: hidden;
+                box-sizing: border-box;
+                page-break-inside: avoid;
+            }
+            /* Adjust padding/margin untuk efisiensi ruang */
+            .print-p-1 { padding: 2px !important; }
+            .print-p-2 { padding: 4px !important; }
+            .print-mb-1 { margin-bottom: 2px !important; }
+            .print-mb-2 { margin-bottom: 4px !important; }
+            .print-mt-1 { margin-top: 2px !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <div class="flex h-screen overflow-hidden no-print">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col flex-shrink-0">
+            <!-- Logo / Brand -->
+            <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
+                <div class="p-2 bg-indigo-600 rounded-lg">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">Buttbet Official</h1>
+                    <span class="text-xs text-indigo-400 font-medium">Jersey Tracker v1.8</span>
+                </div>
+            </div>
+
+            <!-- Menu Navigasi -->
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-indigo-600 text-white font-medium transition duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z"/></svg>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchTab('kanban')" id="nav-kanban" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white font-medium transition duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
+                    <span>Kanban Tracking</span>
+                </button>
+                <button onclick="switchTab('orders')" id="nav-orders" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white font-medium transition duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                    <span>Daftar Pesanan</span>
+                </button>
+                <button onclick="switchTab('tracking')" id="nav-tracking" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white font-medium transition duration-150">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <span class="font-semibold text-emerald-400">Lacak Status Pelanggan</span>
+                </button>
+                <div class="pt-4">
+                    <button onclick="openOrderModal()" class="w-full flex items-center justify-center space-x-3 px-4 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition duration-150 shadow-lg shadow-emerald-900/20">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>Pesanan Baru</span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Bottom Area (Backup & Restore) -->
+            <div class="p-4 border-t border-slate-800 space-y-2">
+                <button onclick="exportData()" class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-slate-800 text-xs text-slate-300 rounded-lg hover:text-white hover:bg-slate-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span>Cadangkan Data (JSON)</span>
+                </button>
+                <label class="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-slate-800 text-xs text-slate-300 rounded-lg hover:text-white hover:bg-slate-700 transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <span>Pulihkan Data</span>
+                    <input type="file" id="importFile" onchange="importData(event)" class="hidden" accept=".json">
+                </label>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-8 flex-shrink-0">
+                <div class="flex items-center space-x-4">
+                    <h2 id="page-title" class="text-xl font-bold text-slate-800">Dashboard Produksi</h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="live-clock" class="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg"></span>
+                </div>
+            </header>
+
+            <!-- Content Workspace -->
+            <div class="flex-1 overflow-y-auto p-8 bg-slate-50" id="main-workspace">
+
+                <!-- Tab: Dashboard -->
+                <div id="tab-dashboard" class="space-y-6">
+                    <!-- Kartu Statistik Utama -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-400">Total Antrian</p>
+                                <h3 id="stat-antrian" class="text-3xl font-extrabold text-indigo-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-400">Sedang Diproses</p>
+                                <h3 id="stat-proses" class="text-3xl font-extrabold text-amber-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-400">Tahap QC</p>
+                                <h3 id="stat-qc" class="text-3xl font-extrabold text-blue-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-slate-400">Selesai Produksi</p>
+                                <h3 id="stat-selesai" class="text-3xl font-extrabold text-emerald-600 mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Layout Bawah Dashboard -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Ringkasan Alur Kerja & Visualisasi Singkat -->
+                        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                            <h4 class="font-bold text-slate-800 text-lg">Peta Alur Produksi Aktif</h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                                <div class="p-4 bg-slate-50 rounded-xl text-center border border-slate-100">
+                                    <span class="text-xs text-slate-400 font-semibold block">ANTRIAN</span>
+                                    <span id="step-count-antrian" class="text-2xl font-bold text-slate-700 mt-1 block">0</span>
+                                </div>
+                                <div class="p-4 bg-purple-50 rounded-xl text-center border border-purple-100">
+                                    <span class="text-xs text-purple-600 font-semibold block">DESAIN</span>
+                                    <span id="step-count-desain" class="text-2xl font-bold text-purple-700 mt-1 block">0</span>
+                                </div>
+                                <div class="p-4 bg-sky-50 rounded-xl text-center border border-sky-100">
+                                    <span class="text-xs text-sky-600 font-semibold block">CETAK</span>
+                                    <span id="step-count-cetak" class="text-2xl font-bold text-sky-700 mt-1 block">0</span>
+                                </div>
+                                <div class="p-4 bg-orange-50 rounded-xl text-center border border-orange-100">
+                                    <span class="text-xs text-orange-600 font-semibold block">PRESS</span>
+                                    <span id="step-count-press" class="text-2xl font-bold text-orange-700 mt-1 block">0</span>
+                                </div>
+                                <div class="p-4 bg-pink-50 rounded-xl text-center border border-pink-100">
+                                    <span class="text-xs text-pink-600 font-semibold block">JAHIT</span>
+                                    <span id="step-count-jahit" class="text-2xl font-bold text-pink-700 mt-1 block">0</span>
+                                </div>
+                                <div class="p-4 bg-teal-50 rounded-xl text-center border border-teal-100">
+                                    <span class="text-xs text-teal-600 font-semibold block">QC</span>
+                                    <span id="step-count-qc" class="text-2xl font-bold text-teal-700 mt-1 block">0</span>
+                                </div>
+                            </div>
+
+                            <!-- Urgent Deadlines -->
+                            <div class="pt-4 border-t border-slate-100">
+                                <h5 class="font-bold text-slate-800 text-sm mb-3">Tenggat Waktu Terdekat (Mendesak)</h5>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-sm">
+                                        <thead>
+                                            <tr class="text-slate-400 font-medium border-b border-slate-100">
+                                                <th class="pb-2">ID Pesanan</th>
+                                                <th class="pb-2">Pelanggan / Desain</th>
+                                                <th class="pb-2">Tenggat Waktu</th>
+                                                <th class="pb-2">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="urgent-deadline-list" class="divide-y divide-slate-50">
+                                            <!-- Diisi oleh JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel Aktivitas & Informasi Toko / Workshop -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-lg">Informasi Workshop</h4>
+                                <div class="mt-4 space-y-3">
+                                    <div class="flex items-center space-x-3 text-sm">
+                                        <span class="w-24 text-slate-400">Nama Workshop</span>
+                                        <span class="font-semibold text-slate-700">Buttbet Official Workshop</span>
+                                    </div>
+                                    <div class="flex items-center space-x-3 text-sm">
+                                        <span class="w-24 text-slate-400">Mode Sistem</span>
+                                        <span class="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded font-bold text-xs">ONLINE MYSQL</span>
+                                    </div>
+                                    <div class="flex items-center space-x-3 text-sm">
+                                        <span class="w-24 text-slate-400">Total Jersey</span>
+                                        <span id="info-total-pcs" class="font-semibold text-slate-700">0 Pcs</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-100">
+                                <h5 class="font-bold text-xs text-slate-500 uppercase tracking-wider">Pembaruan v1.8</h5>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    Pemilahan Rincian Ukuran: Input ukuran kini dipisah kembali untuk **Atasan** dan **Stelan** secara dinamis di form input & SPK cetak demi efisiensi pengerjaan tim penjahit.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Kanban Board -->
+                <div id="tab-kanban" class="hidden h-full flex flex-col space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-4 rounded-xl border border-slate-100 shadow-sm gap-4">
+                        <p class="text-sm text-slate-500">Geser (Drag & Drop) atau klik tombol aksi untuk memindahkan tahapan produksi dengan cepat.</p>
+                        <div class="flex space-x-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Prioritas Tinggi</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Prioritas Sedang</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Prioritas Rendah</span>
+                        </div>
+                    </div>
+
+                    <!-- Container Kolom Kanban -->
+                    <div class="flex-1 overflow-x-auto pb-4">
+                        <div class="flex space-x-4 min-w-[1200px] h-[550px]">
+                            <!-- Kolom 1: Antrian -->
+                            <div class="w-80 bg-slate-100/75 rounded-2xl flex flex-col border border-slate-200/50">
+                                <div class="p-4 bg-slate-200/80 rounded-t-2xl flex justify-between items-center border-b border-slate-200">
+                                    <h5 class="font-bold text-slate-700 text-sm flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 bg-slate-400 rounded-full"></span>
+                                        <span>ANTRIAN</span>
+                                    </h5>
+                                    <span id="kanban-count-antrian" class="bg-slate-300 text-slate-700 font-bold text-xs px-2.5 py-1 rounded-full">0</span>
+                                </div>
+                                <div id="kanban-antrian" class="p-3 flex-1 overflow-y-auto space-y-3" ondragover="allowDrop(event)" ondrop="drop(event, 'Antrian')">
+                                    <!-- Card Diisi oleh JS -->
+                                </div>
+                            </div>
+
+                            <!-- Kolom 2: Desain -->
+                            <div class="w-80 bg-purple-50/50 rounded-2xl flex flex-col border border-purple-100">
+                                <div class="p-4 bg-purple-100/80 rounded-t-2xl flex justify-between items-center border-b border-purple-200">
+                                    <h5 class="font-bold text-purple-700 text-sm flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 bg-purple-500 rounded-full"></span>
+                                        <span>DESAIN & LAYOUT</span>
+                                    </h5>
+                                    <span id="kanban-count-desain" class="bg-purple-200 text-purple-700 font-bold text-xs px-2.5 py-1 rounded-full">0</span>
+                                </div>
+                                <div id="kanban-desain" class="p-3 flex-1 overflow-y-auto space-y-3" ondragover="allowDrop(event)" ondrop="drop(event, 'Desain')">
+                                    <!-- Card Diisi oleh JS -->
+                                </div>
+                            </div>
+
+                            <!-- Kolom 3: Cetak -->
+                            <div class="w-80 bg-sky-50/50 rounded-2xl flex flex-col border border-sky-100">
+                                <div class="p-4 bg-sky-100/80 rounded-t-2xl flex justify-between items-center border-b border-sky-200">
+                                    <h5 class="font-bold text-sky-700 text-sm flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 bg-sky-500 rounded-full"></span>
+                                        <span>CETAK / PRINT</span>
+                                    </h5>
+                                    <span id="kanban-count-cetak" class="bg-sky-200 text-sky-700 font-bold text-xs px-2.5 py-1 rounded-full">0</span>
+                                </div>
+                                <div id="kanban-cetak" class="p-3 flex-1 overflow-y-auto space-y-3" ondragover="allowDrop(event)" ondrop="drop(event, 'Cetak')">
+                                    <!-- Card Diisi oleh JS -->
+                                </div>
+                            </div>
+
+                            <!-- Kolom 4: Press -->
+                            <div class="w-80 bg-orange-50/50 rounded-2xl flex flex-col border border-orange-100">
+                                <div class="p-4 bg-orange-100/80 rounded-t-2xl flex justify-between items-center border-b border-orange-200">
+                                    <h5 class="font-bold text-orange-700 text-sm flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 bg-orange-500 rounded-full"></span>
+                                        <span>PRESS / SUB-TRANSFER</span>
+                                    </h5>
+                                    <span id="kanban-count-press" class="bg-orange-200 text-orange-700 font-bold text-xs px-2.5 py-1 rounded-full">0</span>
+                                </div>
+                                <div id="kanban-press" class="p-3 flex-1 overflow-y-auto space-y-3" ondragover="allowDrop(event)" ondrop="drop(event, 'Press')">
+                                    <!-- Card Diisi oleh JS -->
+                                </div>
+                            </div>
+
+                            <!-- Kolom 5: Jahit -->
+                            <div class="w-80 bg-pink-50/50 rounded-2xl flex flex-col border border-pink-100">
+                                <div class="p-4 bg-pink-100/80 rounded-t-2xl flex justify-between items-center border-b border-pink-200">
+                                    <h5 class="font-bold text-pink-700 text-sm flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 bg-pink-500 rounded-full"></span>
+                                        <span>JAHIT</span>
+                                    </h5>
+                                    <span id="kanban-count-jahit" class="bg-pink-200 text-pink-700 font-bold text-xs px-2.5 py-1 rounded-full">0</span>
+                                </div>
+                                <div id="kanban-jahit" class="p-3 flex-1 overflow-y-auto space-y-3" ondragover="allowDrop(event)" ondrop="drop(event, 'Jahit')">
+                                    <!-- Card Diisi oleh JS -->
+                                </div>
+                            </div>
+
+                            <!-- Kolom 6: QC -->
+                            <div class="w-80 bg-teal-50/50 rounded-2xl flex flex-col border border-teal-100">
+                                <div class="p-4 bg-teal-100/80 rounded-t-2xl flex justify-between items-center border-b border-teal-200">
+                                    <h5 class="font-bold text-teal-700 text-sm flex items-center space-x-2">
+                                        <span class="w-2.5 h-2.5 bg-teal-500 rounded-full"></span>
+                                        <span>QC & PACKING</span>
+                                    </h5>
+                                    <span id="kanban-count-qc" class="bg-teal-200 text-teal-700 font-bold text-xs px-2.5 py-1 rounded-full">0</span>
+                                </div>
+                                <div id="kanban-qc" class="p-3 flex-1 overflow-y-auto space-y-3" ondragover="allowDrop(event)" ondrop="drop(event, 'QC')">
+                                    <!-- Card Diisi oleh JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Daftar Pesanan (Tabel & Manajemen) -->
+                <div id="tab-orders" class="hidden space-y-6">
+                    <!-- Filter & Pencarian -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="relative w-full md:w-96">
+                            <input type="text" id="search-input" oninput="renderOrdersList()" placeholder="Cari ID, Pelanggan, Desain, atau Model..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <svg class="w-5 h-5 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <div class="flex flex-wrap w-full md:w-auto items-center gap-3">
+                            <select id="filter-status" onchange="renderOrdersList()" class="border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Semua">Semua Status</option>
+                                <option value="Antrian">Antrian</option>
+                                <option value="Desain">Desain</option>
+                                <option value="Cetak">Cetak</option>
+                                <option value="Press">Press</option>
+                                <option value="Jahit">Jahit</option>
+                                <option value="QC">Quality Control</option>
+                                <option value="Selesai">Selesai</option>
+                            </select>
+                            <select id="filter-priority" onchange="renderOrdersList()" class="border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Semua">Semua Prioritas</option>
+                                <option value="Tinggi">Tinggi</option>
+                                <option value="Sedang">Sedang</option>
+                                <option value="Rendah">Rendah</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Pesanan -->
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold uppercase text-slate-400 tracking-wider">
+                                        <th class="py-4 px-6">ID / Pelanggan</th>
+                                        <th class="py-4 px-6">Detail Jersey & Desain</th>
+                                        <th class="py-4 px-6 text-center">Qty (Size Chart)</th>
+                                        <th class="py-4 px-6">Tenggat Waktu</th>
+                                        <th class="py-4 px-6">Status</th>
+                                        <th class="py-4 px-6">Prioritas</th>
+                                        <th class="py-4 px-6 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-orders-body" class="divide-y divide-slate-100 text-sm">
+                                    <!-- Diisi oleh JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Lacak Pesanan Mandiri -->
+                <div id="tab-tracking" class="hidden space-y-6">
+                    <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm max-w-3xl mx-auto space-y-6">
+                        <div class="text-center space-y-2">
+                            <div class="inline-flex p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-800">Pelacakan Mandiri Pesanan Jersey</h3>
+                            <p class="text-sm text-slate-500">Masukkan ID Pesanan (misal: JR-26001), Nama Pelanggan, atau Nama Desain untuk memantau proses pengerjaan produksi secara real-time.</p>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <input type="text" id="tracking-input" placeholder="Masukkan ID Pesanan, Nama Pelanggan, atau Nama Desain..." class="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <button onclick="trackOrder()" class="px-6 py-3 bg-indigo-600 text-white font-bold text-sm rounded-xl hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/20">Cari</button>
+                        </div>
+
+                        <!-- Panel Hasil Tracking -->
+                        <div id="tracking-result" class="hidden border-t border-slate-100 pt-6 space-y-6">
+                            <div class="bg-slate-50 p-4 rounded-xl flex flex-col md:flex-row justify-between gap-4 border border-slate-100">
+                                <div>
+                                    <span class="text-xs text-slate-400 font-bold uppercase block">ID PESANAN</span>
+                                    <h4 id="track-id" class="text-lg font-black text-indigo-600">JR-26001</h4>
+                                    <span id="track-jersey-category" class="mt-1 inline-block text-xs font-semibold px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded">Kategori: Stelan</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-slate-400 font-bold uppercase block">PELANGGAN / DESAIN</span>
+                                    <h5 id="track-name" class="font-bold text-slate-800">Andika Jaya</h5>
+                                    <span id="track-design-name" class="text-xs text-indigo-600 font-semibold block">Desain: Garuda Jaya</span>
+                                    <span id="track-phone" class="text-xs text-slate-400">08129999000</span>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-slate-400 font-bold uppercase block">TENGGAT WAKTU</span>
+                                    <h5 id="track-deadline" class="font-bold text-slate-800">28 Mei 2026</h5>
+                                    <span id="track-days-left" class="text-xs text-red-500 font-semibold block">Sisa 7 Hari Lagi</span>
+                                </div>
+                            </div>
+
+                            <!-- Visual progress tracker (Stepper) -->
+                            <div>
+                                <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block mb-4">Progres Tahapan Produksi:</span>
+                                <div class="relative flex flex-col md:flex-row justify-between items-center gap-6 md:gap-2">
+                                    <div class="absolute h-full md:h-1 bg-slate-200 left-1/2 md:left-0 md:right-0 top-0 bottom-0 md:top-1/2 -translate-x-1/2 md:translate-x-0 -translate-y-0 md:-translate-y-1/2 z-0 w-1 md:w-full"></div>
+                                    
+                                    <!-- Step Antrian -->
+                                    <div id="step-Antrian" class="relative z-10 flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm">1</div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">Antrian</span>
+                                    </div>
+                                    <!-- Step Desain -->
+                                    <div id="step-Desain" class="relative z-10 flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm">2</div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">Desain</span>
+                                    </div>
+                                    <!-- Step Cetak -->
+                                    <div id="step-Cetak" class="relative z-10 flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm">3</div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">Cetak</span>
+                                    </div>
+                                    <!-- Step Press -->
+                                    <div id="step-Press" class="relative z-10 flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm">4</div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">Press</span>
+                                    </div>
+                                    <!-- Step Jahit -->
+                                    <div id="step-Jahit" class="relative z-10 flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm">5</div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">Jahit</span>
+                                    </div>
+                                    <!-- Step QC -->
+                                    <div id="step-QC" class="relative z-10 flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm">6</div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">QC/Packing</span>
+                                    </div>
+                                    <!-- Step Selesai -->
+                                    <div id="step-Selesai" class="relative z-10 flex flex-col items-center">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm">✓</div>
+                                        <span class="text-xs font-bold text-slate-600 mt-2">Selesai</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                                <div class="space-y-3">
+                                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block">Spesifikasi Detail Jersey</span>
+                                    <p class="text-sm"><strong>Bahan:</strong> <span id="track-fabric">Milano</span></p>
+                                    <p class="text-sm"><strong>Model Kerah:</strong> <span id="track-collar">V-Neck</span></p>
+                                    <p class="text-sm"><strong>Total Jumlah:</strong> <span id="track-qty">0 Pcs</span></p>
+                                    
+                                    <!-- Rincian Ukuran Detail -->
+                                    <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 space-y-1">
+                                        <span class="text-xs font-bold text-indigo-950 uppercase tracking-wide block">Distribusi Ukuran:</span>
+                                        <div id="track-sizes-detail" class="text-xs text-indigo-900 font-semibold space-y-1">
+                                            <!-- Diisi oleh JS -->
+                                        </div>
+                                    </div>
+
+                                    <p class="text-sm text-slate-600 bg-white p-3 rounded-lg border border-slate-100"><strong class="block mb-1">Catatan Khusus:</strong> <span id="track-notes">-</span></p>
+                                </div>
+                                <div class="flex flex-col bg-white p-4 rounded-xl border border-slate-100 space-y-2">
+                                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider block self-start">Mockup Desain Jersey</span>
+                                    <div id="track-mockup-gallery" class="grid grid-cols-2 gap-2 w-full mt-1">
+                                        <!-- Galeri Mockup Lacak Pesanan -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Kosong -->
+                        <div id="tracking-empty" class="text-center py-8 text-slate-400 hidden">
+                            <p class="text-sm">Pesanan tidak ditemukan. Periksa kembali ID Pesanan, Nama, atau Desain Anda.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Tambah & Edit Pesanan -->
+    <div id="order-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 id="modal-title" class="text-xl font-bold text-slate-800">Tambah Pesanan Baru</h3>
+                <button onclick="closeOrderModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Modal Body (Form) -->
+            <form id="order-form" onsubmit="saveOrder(event)" class="flex-1 overflow-y-auto p-6 space-y-6">
+                <input type="hidden" id="order-id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Bagian Informasi Pelanggan -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-sm text-indigo-600 uppercase tracking-wider">Informasi Pelanggan</h4>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Nama Pelanggan *</label>
+                            <input type="text" id="customer-name" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Kontak/HP *</label>
+                            <input type="text" id="customer-phone" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Tenggat Waktu *</label>
+                                <input type="date" id="deadline" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Prioritas *</label>
+                                <select id="priority" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <option value="Rendah">Rendah</option>
+                                    <option value="Sedang" selected>Sedang</option>
+                                    <option value="Tinggi">Tinggi</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bagian Spesifikasi Jersey -->
+                    <div class="space-y-4">
+                        <h4 class="font-bold text-sm text-indigo-600 uppercase tracking-wider">Spesifikasi Jersey</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Nama Desain *</label>
+                                <input type="text" id="design-name" required placeholder="Contoh: Garuda Muda V2" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Kategori Jersey *</label>
+                                <select id="jersey-category" required onchange="toggleSizingFields()" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <option value="Atasan" selected>Atasan saja</option>
+                                    <option value="Stelan">Stelan (Atasan + Celana)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Model Kerah</label>
+                                <input type="text" id="collar-type" placeholder="O-Neck, V-Neck, Berkerah" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Jenis Bahan Kain</label>
+                                <input type="text" id="fabric-type" placeholder="Dryfit Milano, Serena, dll" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Mockup Gambar (Maks 5 Gambar)</label>
+                            <input type="file" id="mockup-file" accept="image/*" multiple onchange="handleMockupUpload(event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        </div>
+                        
+                        <!-- Thumbnail Preview Multi Mockup -->
+                        <div id="mockup-preview-container" class="hidden space-y-2 bg-slate-50 p-3 rounded-xl border">
+                            <span class="text-xs font-semibold text-slate-500 block">Daftar Mockup Terunggah:</span>
+                            <div id="mockup-thumbnails-grid" class="grid grid-cols-5 gap-2">
+                                <!-- thumbnail gambar yang diunggah akan masuk kesini -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Catatan Desain / Keterangan</label>
+                            <textarea id="design-notes" rows="2" placeholder="Nama tim di dada, nomor punggung putih border emas..." class="w-full px-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Rincian Ukuran & Jumlah Pcs -->
+                <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100 space-y-6">
+                    <h4 class="font-bold text-sm text-slate-700">Rincian Ukuran Jersey (Size Chart)</h4>
+                    
+                    <!-- Form Ukuran Atasan (Selalu Muncul) -->
+                    <div id="sizing-atasan-container" class="space-y-2">
+                        <label class="block text-xs font-bold text-indigo-700 uppercase tracking-wider">1. Ukuran Atasan (Baju)</label>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">XS</span>
+                                <input type="number" id="size-atasan-xs" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">S</span>
+                                <input type="number" id="size-atasan-s" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">M</span>
+                                <input type="number" id="size-atasan-m" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">L</span>
+                                <input type="number" id="size-atasan-l" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">XL</span>
+                                <input type="number" id="size-atasan-xl" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">XXL+</span>
+                                <input type="number" id="size-atasan-xxl" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Ukuran Stelan (Hanya muncul jika Kategori = Stelan) -->
+                    <div id="sizing-stelan-container" class="space-y-2 hidden">
+                        <label class="block text-xs font-bold text-emerald-700 uppercase tracking-wider">2. Ukuran Stelan</label>
+                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">XS</span>
+                                <input type="number" id="size-stelan-xs" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">S</span>
+                                <input type="number" id="size-stelan-s" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">M</span>
+                                <input type="number" id="size-stelan-m" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">L</span>
+                                <input type="number" id="size-stelan-l" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">XL</span>
+                                <input type="number" id="size-stelan-xl" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-slate-200 text-center">
+                                <span class="text-xs font-semibold text-slate-400 block mb-1">XXL+</span>
+                                <input type="number" id="size-stelan-xxl" min="0" value="0" oninput="calculateTotalPcs()" class="w-full text-center font-bold text-slate-700 bg-slate-50 rounded py-1 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Kuantitas Preview -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 gap-2">
+                        <span class="text-sm font-semibold text-indigo-900">Total Kuantitas Produksi:</span>
+                        <div class="flex flex-col text-right">
+                            <span id="total-atasan-preview" class="text-xs font-bold text-indigo-600">Atasan: 0 Pcs</span>
+                            <span id="total-stelan-preview" class="text-xs font-bold text-emerald-600 hidden">Stelan: 0 Pcs</span>
+                            <span id="total-qty-preview" class="text-lg font-black text-slate-800">0 Pcs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="pt-4 border-t border-slate-100 flex justify-end space-x-3">
+                    <button type="button" onclick="closeOrderModal()" class="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 font-semibold text-sm transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 font-semibold text-sm shadow-lg shadow-indigo-600/20 transition">Simpan Pesanan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Kustom -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-xl">
+            <h3 class="font-bold text-lg text-slate-800">Konfirmasi Hapus</h3>
+            <p class="text-sm text-slate-500" id="confirm-modal-text">Apakah Anda yakin ingin menghapus data ini?</p>
+            <div class="flex justify-end space-x-3 pt-2">
+                <button id="confirm-cancel" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 text-sm font-semibold">Batal</button>
+                <button id="confirm-ok" class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-500 text-sm font-semibold">Hapus</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template Cetak SPK (Dioptimalkan Tepat 1 Halaman Kertas A4 Portrait) -->
+    <div id="spk-print-template" class="hidden print-only p-2 bg-white text-black min-h-screen">
+        <!-- Kop Surat Padat -->
+        <div class="border-b-2 border-black pb-1 print-mb-2 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-extrabold uppercase tracking-tight">SURAT PERINTAH KERJA (SPK)</h1>
+                <p class="text-[9px] tracking-wide font-medium text-slate-600">Workshop Produksi Jersey Buttbet Official</p>
+            </div>
+            <div class="text-right">
+                <span id="print-spk-id" class="text-xs font-extrabold border border-black px-2 py-0.5 inline-block">JR-20261</span>
+                <p class="text-[8px] text-slate-500 mt-0.5">Cetak: <span id="print-spk-date"></span></p>
+            </div>
+        </div>
+
+        <!-- Detail Data Ringkas 2 Kolom -->
+        <div class="grid grid-cols-2 gap-2 print-mb-2 text-[9px]">
+            <div class="bg-slate-50 print-p-1 border border-slate-200 rounded">
+                <h3 class="font-bold text-[9px] border-b border-black pb-0.5 print-mb-1 text-slate-500">DETAIL PELANGGAN</h3>
+                <table class="w-full">
+                    <tr><td class="w-20 font-semibold py-0.5">Nama Pelanggan</td><td id="print-cust-name">: -</td></tr>
+                    <tr><td class="w-20 font-semibold py-0.5">HP / Kontak</td><td id="print-cust-phone">: -</td></tr>
+                    <tr><td class="w-20 font-semibold py-0.5 text-rose-600">Tenggat Selesai</td><td id="print-cust-deadline" class="font-bold text-rose-600">: -</td></tr>
+                </table>
+            </div>
+            <div class="bg-slate-50 print-p-1 border border-slate-200 rounded">
+                <h3 class="font-bold text-[9px] border-b border-black pb-0.5 print-mb-1 text-slate-500">DETAIL BAHAN & MODEL</h3>
+                <table class="w-full">
+                    <tr><td class="w-20 font-semibold py-0.5">Nama Desain</td><td id="print-jersey-design-name" class="font-bold text-indigo-700">: -</td></tr>
+                    <tr><td class="w-20 font-semibold py-0.5">Kategori Jersey</td><td id="print-jersey-category" class="font-bold">: -</td></tr>
+                    <tr><td class="w-20 font-semibold py-0.5">Bahan Kain</td><td id="print-jersey-material">: -</td></tr>
+                    <tr><td class="w-20 font-semibold py-0.5">Model Kerah</td><td id="print-jersey-collar">: -</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tabel Ukuran Ringkas -->
+        <div class="print-mb-2">
+            <h3 id="print-sizing-title" class="font-bold text-[9px] uppercase text-slate-500 print-mb-1">Rincian Ukuran Produksi (Size Chart)</h3>
+            <table class="w-full border-collapse border border-black text-center text-[9px]">
+                <thead>
+                    <tr class="bg-slate-100">
+                        <th class="border border-black py-0.5 text-left px-1">BAGIAN</th>
+                        <th class="border border-black py-0.5">XS</th>
+                        <th class="border border-black py-0.5">S</th>
+                        <th class="border border-black py-0.5">M</th>
+                        <th class="border border-black py-0.5">L</th>
+                        <th class="border border-black py-0.5">XL</th>
+                        <th class="border border-black py-0.5">XXL+</th>
+                        <th class="border border-black py-0.5 font-bold bg-slate-200">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="print-row-atasan">
+                        <td class="border border-black py-1 px-1 text-left font-medium">Atasan (Baju)</td>
+                        <td id="p-atasan-xs" class="border border-black">0</td>
+                        <td id="p-atasan-s" class="border border-black">0</td>
+                        <td id="p-atasan-m" class="border border-black">0</td>
+                        <td id="p-atasan-l" class="border border-black">0</td>
+                        <td id="p-atasan-xl" class="border border-black">0</td>
+                        <td id="p-atasan-xxl" class="border border-black">0</td>
+                        <td id="p-atasan-total" class="border border-black font-bold bg-slate-50">0 Pcs</td>
+                    </tr>
+                    <tr id="print-row-stelan" class="hidden">
+                        <td class="border border-black py-1 px-1 text-left font-medium">Stelan</td>
+                        <td id="p-stelan-xs" class="border border-black">0</td>
+                        <td id="p-stelan-s" class="border border-black">0</td>
+                        <td id="p-stelan-m" class="border border-black">0</td>
+                        <td id="p-stelan-l" class="border border-black">0</td>
+                        <td id="p-stelan-xl" class="border border-black">0</td>
+                        <td id="p-stelan-xxl" class="border border-black">0</td>
+                        <td id="p-stelan-total" class="border border-black font-bold bg-slate-50">0 Pcs</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="text-right font-black text-xs print-mb-1 mt-1">
+                TOTAL KESELURUHAN: <span id="p-final-total" class="bg-slate-100 px-2 py-0.5 border border-black inline-block">0 Pcs/Stel</span>
+            </div>
+        </div>
+
+        <!-- Section Catatan & Mockup Padat (Diperbarui: Gambar Lebih Besar) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 print-mb-2">
+            <!-- Catatan Desain (1/3 lebar) -->
+            <div class="col-span-1 print-p-1 border border-slate-300 bg-slate-50 rounded flex flex-col min-h-[90px]">
+                <h4 class="font-bold text-[8px] text-slate-500 uppercase border-b border-slate-200 pb-0.5 print-mb-1">Catatan Khusus / Detail Sablon:</h4>
+                <p id="print-jersey-notes" class="text-[10px] whitespace-pre-wrap leading-tight text-slate-700 flex-1">-</p>
+            </div>
+            
+            <!-- Galeri Mockup Gambar (2/3 lebar, maks 5 lebih besar) -->
+            <div class="col-span-2 border border-slate-300 print-p-1 bg-slate-50 rounded">
+                <h3 class="font-bold text-[8px] uppercase text-slate-500 print-mb-1 border-b border-slate-200 pb-0.5">Visual Mockup Desain (Maks 5)</h3>
+                <div id="print-mockup-gallery" class="grid grid-cols-2 gap-1.5 w-full items-start justify-center">
+                    <!-- Galeri mockup dimasukkan lewat JS (Gambar diatur lebih besar) -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tanda Tangan Mandor / Operator Produksi -->
+        <div class="grid grid-cols-4 gap-1 text-center text-[9px] mt-2.5 pt-1 border-t border-dashed border-slate-300 print-mt-1">
+            <div>
+                <p class="font-semibold text-slate-500 print-mb-8">Desainer / Layouter</p>
+                <div class="border-t border-black w-3/4 mx-auto pt-0.5 font-medium">( ...................... )</div>
+            </div>
+            <div>
+                <p class="font-semibold text-slate-500 print-mb-8">Operator Print & Press</p>
+                <div class="border-t border-black w-3/4 mx-auto pt-0.5 font-medium">( ...................... )</div>
+            </div>
+            <div>
+                <p class="font-semibold text-slate-500 print-mb-8">Operator Jahit</p>
+                <div class="border-t border-black w-3/4 mx-auto pt-0.5 font-medium">( ...................... )</div>
+            </div>
+            <div>
+                <p class="font-semibold text-slate-500 print-mb-8">Quality Control (QC)</p>
+                <div class="border-t border-black w-3/4 mx-auto pt-0.5 font-medium">( ...................... )</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- JS Logic Application -->
+    <script>
+        const dummyOrders = [
+            {
+                id: "JR-26001",
+                customerName: "Persija Fans Club",
+                phone: "081288339121",
+                designName: "Garuda Sambernyawa V1",
+                collarType: "O-Neck",
+                fabricType: "Dryfit Milano",
+                jerseyCategory: "Stelan",
+                designNotes: "Sublim fullprint depan-belakang, logo diletakkan di dada kiri dengan aksen emas bergaris merah.",
+                deadline: "2026-05-28",
+                priority: "Tinggi",
+                status: "Desain",
+                sizesAtasan: { xs: 0, s: 5, m: 10, l: 15, xl: 5, xxl: 2 },
+                sizesStelan: { xs: 0, s: 5, m: 10, l: 15, xl: 5, xxl: 2 },
+                totalQty: 37,
+                mockupImages: [],
+                createdAt: "2026-05-20"
+            },
+            {
+                id: "JR-26002",
+                customerName: "Esports Arena Nusantara",
+                phone: "085277114421",
+                designName: "Nusantara Cyan Wave",
+                collarType: "V-Neck Rib",
+                fabricType: "Benzema",
+                jerseyCategory: "Atasan",
+                designNotes: "Gunakan pola gradasi biru tua ke cyan di bagian bawah. List lengan berwarna putih.",
+                deadline: "2026-06-03",
+                priority: "Sedang",
+                status: "Antrian",
+                sizesAtasan: { xs: 2, s: 4, m: 8, l: 12, xl: 4, xxl: 0 },
+                sizesStelan: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 },
+                totalQty: 30,
+                mockupImages: [],
+                createdAt: "2026-05-21"
+            }
+        ];
+        // Fetch data from MySQL via api.php
+        let orders = [];
+        async function fetchOrders() {
+            try {
+                const res = await fetch('api.php?action=get_orders');
+                const data = await res.json();
+                if (data.success) {
+                    orders = data.data;
+                    refreshApp();
+                }
+            } catch (err) {
+                console.error("Error fetching orders:", err);
+            }
+        }
+        // Initialize fetch
+        fetchOrders();
+
+        let deleteIdQueue = null;
+        let currentMockupImages = []; // Array global penyimpan base64 mockup yang sedang di-edit/tambah
+
+        window.onload = function() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // Atur tombol modal konfirmasi kustom
+            document.getElementById('confirm-cancel').addEventListener('click', () => {
+                document.getElementById('confirm-modal').classList.add('hidden');
+                deleteIdQueue = null;
+            });
+
+            document.getElementById('confirm-ok').addEventListener('click', () => {
+                if (deleteIdQueue) {
+                    executeDeleteOrder(deleteIdQueue);
+                    document.getElementById('confirm-modal').classList.add('hidden');
+                    deleteIdQueue = null;
+                }
+            });
+
+            refreshApp();
+        };
+
+        function updateClock() {
+            const clockEl = document.getElementById('live-clock');
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const dayName = days[now.getDay()];
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            clockEl.textContent = `${dayName}, ${now.toLocaleDateString('id-ID')} - ${timeStr}`;
+        }
+
+        function refreshApp() {
+            renderDashboard();
+            renderKanban();
+            renderOrdersList();
+        }
+
+        function switchTab(tabId) {
+            document.getElementById('tab-dashboard').classList.add('hidden');
+            document.getElementById('tab-kanban').classList.add('hidden');
+            document.getElementById('tab-orders').classList.add('hidden');
+            document.getElementById('tab-tracking').classList.add('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white font-medium transition duration-150";
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).className = "nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-indigo-600 text-white font-medium transition duration-150";
+
+            const titles = {
+                'dashboard': 'Dashboard Produksi',
+                'kanban': 'Peta Alur Produksi (Kanban Board)',
+                'orders': 'Semua Daftar Pesanan',
+                'tracking': 'Lacak Pesanan Pelanggan'
+            };
+            document.getElementById('page-title').textContent = titles[tabId];
+        }
+
+        function renderDashboard() {
+            const counts = { Antrian: 0, Desain: 0, Cetak: 0, Press: 0, Jahit: 0, QC: 0, Selesai: 0 };
+            let totalPcs = 0;
+
+            orders.forEach(order => {
+                if (counts[order.status] !== undefined) {
+                    counts[order.status]++;
+                }
+                totalPcs += order.totalQty || 0;
+            });
+
+            document.getElementById('stat-antrian').textContent = counts.Antrian;
+            document.getElementById('stat-proses').textContent = counts.Desain + counts.Cetak + counts.Press + counts.Jahit;
+            document.getElementById('stat-qc').textContent = counts.QC;
+            document.getElementById('stat-selesai').textContent = counts.Selesai;
+
+            document.getElementById('step-count-antrian').textContent = counts.Antrian;
+            document.getElementById('step-count-desain').textContent = counts.Desain;
+            document.getElementById('step-count-cetak').textContent = counts.Cetak;
+            document.getElementById('step-count-press').textContent = counts.Press;
+            document.getElementById('step-count-jahit').textContent = counts.Jahit;
+            document.getElementById('step-count-qc').textContent = counts.QC;
+
+            document.getElementById('info-total-pcs').textContent = `${totalPcs} Stel/Pcs`;
+
+            const activeOrders = orders.filter(o => o.status !== 'Selesai');
+            activeOrders.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+
+            const urgentList = document.getElementById('urgent-deadline-list');
+            urgentList.innerHTML = '';
+
+            if (activeOrders.length === 0) {
+                urgentList.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-xs text-slate-400">Tidak ada pesanan aktif</td></tr>`;
+                return;
+            }
+
+            activeOrders.slice(0, 4).forEach(o => {
+                const today = new Date();
+                const diffTime = new Date(o.deadline) - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                let dayBadge = `<span class="text-xs text-slate-500">${o.deadline}</span>`;
+                if (diffDays <= 2) {
+                    dayBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">${o.deadline} (Mendesak)</span>`;
+                } else if (diffDays <= 5) {
+                    dayBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">${o.deadline}</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 font-semibold text-xs text-indigo-600">#${o.id}</td>
+                    <td class="py-3 text-slate-700 font-medium">
+                        <span class="block">${o.customerName}</span>
+                        <span class="block text-[10px] text-indigo-500 font-bold">${o.designName || 'Desain: Biasa'}</span>
+                    </td>
+                    <td class="py-3">${dayBadge}</td>
+                    <td class="py-3">
+                        <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">${o.status}</span>
+                    </td>
+                `;
+                urgentList.appendChild(tr);
+            });
+        }
+
+        function renderKanban() {
+            const stages = ['Antrian', 'Desain', 'Cetak', 'Press', 'Jahit', 'QC'];
+            stages.forEach(stage => {
+                const stageId = stage.toLowerCase();
+                const container = document.getElementById(`kanban-${stageId}`);
+                const countEl = document.getElementById(`kanban-count-${stageId}`);
+                
+                container.innerHTML = '';
+                const stageOrders = orders.filter(o => o.status.toLowerCase() === stageId || (stageId === 'desain' && o.status === 'Desain'));
+                countEl.textContent = stageOrders.length;
+
+                if (stageOrders.length === 0) {
+                    container.innerHTML = `
+                        <div class="h-full flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
+                            Kosong
+                        </div>
+                    `;
+                    return;
+                }
+
+                stageOrders.forEach(order => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 cursor-grab active:cursor-grabbing hover:border-indigo-400 hover:shadow transition space-y-3 relative";
+                    card.draggable = true;
+                    card.ondragstart = (e) => drag(e, order.id);
+
+                    let priorityColor = "bg-blue-100 text-blue-800";
+                    if (order.priority === 'Tinggi') priorityColor = "bg-red-100 text-red-800";
+                    if (order.priority === 'Sedang') priorityColor = "bg-amber-100 text-amber-800";
+
+                    // Hitung sebaran ukuran ringkas (Atasan vs Stelan)
+                    const sA = order.sizesAtasan || order.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+                    let briefSizes = `Atasan: S:${sA.s}/M:${sA.m}/L:${sA.l}/XL:${sA.xl}`;
+                    
+                    if (order.jerseyCategory === 'Stelan') {
+                        const sS = order.sizesStelan || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+                        briefSizes += ` | Stelan: S:${sS.s}/M:${sS.m}/L:${sS.l}/XL:${sS.xl}`;
+                    }
+
+                    // Multi-Mockup indicator
+                    const images = order.mockupImages || (order.mockupImage ? [order.mockupImage] : []);
+                    const imgCountIndicator = images.length > 0 ? `
+                        <div class="absolute top-10 right-4 flex items-center space-x-1 text-slate-400 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>${images.length}</span>
+                        </div>
+                    ` : '';
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-extrabold tracking-wider text-indigo-600">#${order.id}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${priorityColor}">${order.priority}</span>
+                        </div>
+                        ${imgCountIndicator}
+                        <div>
+                            <h6 class="font-bold text-slate-800 text-sm leading-tight">${order.customerName}</h6>
+                            <p class="text-[11px] font-extrabold text-indigo-600 mt-0.5 leading-none">${order.designName || 'Desain: Biasa'}</p>
+                            <p class="text-[11px] text-slate-500 mt-1 font-medium leading-relaxed">
+                                <strong>${order.totalQty} Pcs/Stel</strong> • ${order.jerseyCategory || 'Atasan'} (${order.fabricType || 'Bahan'})
+                            </p>
+                            <p class="text-[9px] text-slate-600 mt-1 font-semibold leading-normal bg-indigo-50/50 p-1.5 rounded border border-indigo-100/50 truncate" title="${briefSizes}">
+                                ${briefSizes}
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100">
+                            <span class="flex items-center"><svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>${order.deadline}</span>
+                        </div>
+                        <!-- Menu aksi cepat kanban -->
+                        <div class="flex justify-end space-x-1 pt-1">
+                            <button onclick="editOrder('${order.id}')" class="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition" title="Edit Pesanan">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button onclick="printSPK('${order.id}')" class="p-1 text-slate-400 hover:text-emerald-600 hover:bg-slate-100 rounded transition" title="Cetak SPK">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            </button>
+                            <button onclick="moveStage('${order.id}', 'next')" class="p-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded transition" title="Lanjut Tahap">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev, orderId) {
+            ev.dataTransfer.setData("text", orderId);
+        }
+
+        function drop(ev, stage) {
+            ev.preventDefault();
+            const id = ev.dataTransfer.getData("text");
+            updateOrderStatus(id, stage);
+        }
+
+        function moveStage(id, direction) {
+            const stages = ['Antrian', 'Desain', 'Cetak', 'Press', 'Jahit', 'QC', 'Selesai'];
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+
+            let currentIndex = stages.indexOf(order.status);
+            if (direction === 'next' && currentIndex < stages.length - 1) {
+                updateOrderStatus(id, stages[currentIndex + 1]);
+            }
+        }
+
+        function updateOrderStatus(id, newStatus) {
+            orders = orders.map(o => {
+                if (o.id === id) {
+                    o.status = newStatus;
+                    showToast(`Sukses! Pesanan #${id} berpindah ke tahapan ${newStatus}`, 'success');
+                }
+                return o;
+            });
+            fetch('api.php?action=update_status', {
+                method: 'PUT',
+                body: JSON.stringify({id, status: newStatus})
+            });
+            refreshApp();
+        }
+
+        function renderOrdersList() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filterStatus = document.getElementById('filter-status').value;
+            const filterPriority = document.getElementById('filter-priority').value;
+
+            const tableBody = document.getElementById('table-orders-body');
+            tableBody.innerHTML = '';
+
+            const filtered = orders.filter(o => {
+                const matchQuery = o.id.toLowerCase().includes(query) || 
+                                   o.customerName.toLowerCase().includes(query) || 
+                                   (o.designName && o.designName.toLowerCase().includes(query)) ||
+                                   (o.designNotes && o.designNotes.toLowerCase().includes(query));
+                
+                const matchStatus = filterStatus === 'Semua' || o.status === filterStatus;
+                const matchPriority = filterPriority === 'Semua' || o.priority === filterPriority;
+
+                return matchQuery && matchStatus && matchPriority;
+            });
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                            <svg class="w-12 h-12 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0l-3.586-3.586a2 2 0 00-2.828 0L16 11m-2-2v10m-4-10v10m-3-10h.01M21 16h.01"/></svg>
+                            <span class="text-sm font-medium">Tidak ada data pesanan yang cocok.</span>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filtered.forEach(o => {
+                let priorityColor = "bg-blue-100 text-blue-800";
+                if (o.priority === 'Tinggi') priorityColor = "bg-red-100 text-red-800";
+                if (o.priority === 'Sedang') priorityColor = "bg-amber-100 text-amber-800";
+
+                let statusColor = "bg-slate-100 text-slate-700";
+                if (o.status === 'Desain') statusColor = "bg-purple-100 text-purple-800 border-purple-200";
+                if (o.status === 'Cetak') statusColor = "bg-sky-100 text-sky-800 border-sky-200";
+                if (o.status === 'Press') statusColor = "bg-orange-100 text-orange-800 border-orange-200";
+                if (o.status === 'Jahit') statusColor = "bg-pink-100 text-pink-800 border-pink-200";
+                if (o.status === 'QC') statusColor = "bg-teal-100 text-teal-800 border-teal-200";
+                if (o.status === 'Selesai') statusColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+                // Memisahkan list ukuran di tabel (Baju & Stelan)
+                const sA = o.sizesAtasan || o.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+                let sizesText = `<div class="text-[10px] text-indigo-700 font-semibold leading-normal">
+                    <strong>Baju:</strong> XS:${sA.xs}/S:${sA.s}/M:${sA.m}/L:${sA.l}/XL:${sA.xl}/XXL:${sA.xxl}
+                </div>`;
+                
+                if (o.jerseyCategory === 'Stelan') {
+                    const sS = o.sizesStelan || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+                    sizesText += `<div class="text-[10px] text-emerald-700 font-semibold leading-normal mt-0.5 border-t border-slate-100 pt-0.5">
+                        <strong>Stelan:</strong> XS:${sS.xs}/S:${sS.s}/M:${sS.m}/L:${sS.l}/XL:${sS.xl}/XXL:${sS.xxl}
+                    </div>`;
+                }
+
+                const images = o.mockupImages || (o.mockupImage ? [o.mockupImage] : []);
+                const mockupSnippet = images.length > 0 ? `
+                    <div class="mt-1 flex -space-x-2 overflow-hidden py-1">
+                        ${images.slice(0, 3).map(img => `<img class="inline-block h-6 w-6 rounded-full ring-2 ring-white object-cover bg-white" src="${img}">`).join('')}
+                        ${images.length > 3 ? `<span class="flex items-center justify-center h-6 w-6 rounded-full bg-slate-200 text-[9px] font-bold ring-2 ring-white text-slate-600">+${images.length - 3}</span>` : ''}
+                    </div>
+                ` : '<span class="text-[10px] text-slate-400">No mockup</span>';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-indigo-600 text-xs">#${o.id}</div>
+                        <div class="font-semibold text-slate-800 mt-0.5">${o.customerName}</div>
+                        <div class="text-xs text-slate-400 font-medium">${o.phone}</div>
+                    </td>
+                    <td class="py-4 px-6 max-w-xs">
+                        <div class="font-bold text-slate-700 text-xs text-indigo-700">Desain: ${o.designName || 'Biasa'}</div>
+                        <div class="font-medium text-slate-500 text-[11px] mt-0.5">Kat: <span class="font-bold">${o.jerseyCategory || 'Atasan'}</span> (${o.collarType || '-'} • ${o.fabricType || '-'})</div>
+                        <div class="text-xs text-slate-400 truncate mt-1" title="${o.designNotes || ''}">${o.designNotes || 'Tidak ada catatan'}</div>
+                        ${mockupSnippet}
+                    </td>
+                    <td class="py-4 px-6">
+                        <div class="font-bold text-slate-800 text-center">${o.totalQty} Stel/Pcs</div>
+                        <div class="mt-1 bg-slate-50 p-2 rounded border border-slate-100">
+                            ${sizesText}
+                        </div>
+                    </td>
+                    <td class="py-4 px-6 font-semibold text-xs text-slate-600">
+                        ${o.deadline}
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="px-2.5 py-1 text-xs font-bold uppercase rounded-full border ${statusColor}">
+                            ${o.status}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full ${priorityColor}">
+                            ${o.priority}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right space-x-2">
+                        <button onclick="editOrder('${o.id}')" class="text-indigo-600 hover:text-indigo-800 font-bold text-xs bg-indigo-50 px-2 py-1.5 rounded-lg">Edit</button>
+                        <button onclick="printSPK('${o.id}')" class="text-emerald-600 hover:text-emerald-800 font-bold text-xs bg-emerald-50 px-2 py-1.5 rounded-lg">Cetak SPK</button>
+                        <button onclick="deleteOrder('${o.id}')" class="text-red-600 hover:text-red-800 font-bold text-xs bg-red-50 px-2 py-1.5 rounded-lg">Hapus</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Mengubah visibilitas & menghitung ulang rincian ukuran di form
+        function toggleSizingFields() {
+            const category = document.getElementById('jersey-category').value;
+            const stelanContainer = document.getElementById('sizing-stelan-container');
+            const stelanPreview = document.getElementById('total-stelan-preview');
+            
+            if (category === 'Stelan') {
+                stelanContainer.classList.remove('hidden');
+                stelanPreview.classList.remove('hidden');
+            } else {
+                stelanContainer.classList.add('hidden');
+                stelanPreview.classList.add('hidden');
+                // Kosongkan isian jika Kategori Atasan saja dipilih
+                const sizes = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+                sizes.forEach(s => {
+                    document.getElementById(`size-stelan-${s}`).value = 0;
+                });
+            }
+            calculateTotalPcs();
+        }
+
+        function handleMockupUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const maxAllowed = 5;
+            if (currentMockupImages.length + files.length > maxAllowed) {
+                showToast(`Batas maksimal adalah ${maxAllowed} gambar mockup untuk efisiensi performa offline.`, "error");
+                event.target.value = '';
+                return;
+            }
+
+            let loadedCount = 0;
+            Array.from(files).forEach(file => {
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast(`File "${file.name}" terlalu besar! Maksimal 2MB per gambar.`, "error");
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    currentMockupImages.push(base64Data);
+                    loadedCount++;
+                    if (loadedCount === files.length || currentMockupImages.length >= maxAllowed) {
+                        renderMockupThumbnails();
+                        showToast(`${loadedCount} gambar mockup berhasil ditambahkan!`, "success");
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+
+            event.target.value = '';
+        }
+
+        function renderMockupThumbnails() {
+            const container = document.getElementById('mockup-preview-container');
+            const grid = document.getElementById('mockup-thumbnails-grid');
+            grid.innerHTML = '';
+
+            if (currentMockupImages.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            currentMockupImages.forEach((img, idx) => {
+                const item = document.createElement('div');
+                item.className = "relative group border border-slate-200 rounded-lg overflow-hidden bg-white aspect-square flex items-center justify-center";
+                item.innerHTML = `
+                    <img src="${img}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeSingleMockup(${idx})" class="absolute top-1 right-1 bg-rose-600 text-white p-1 rounded-full opacity-90 hover:opacity-100 transition shadow-md" title="Hapus Gambar">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function removeSingleMockup(index) {
+            currentMockupImages.splice(index, 1);
+            renderMockupThumbnails();
+            showToast("Mockup gambar terhapus.", "info");
+        }
+
+        // Kalkulasi total PCs v1.8 (Mendukung dua set ukuran terpisah)
+        function calculateTotalPcs() {
+            const category = document.getElementById('jersey-category').value;
+            const sizesList = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+            
+            let totalAtasan = 0;
+            let totalStelan = 0;
+
+            sizesList.forEach(s => {
+                totalAtasan += parseInt(document.getElementById(`size-atasan-${s}`).value) || 0;
+                totalStelan += parseInt(document.getElementById(`size-stelan-${s}`).value) || 0;
+            });
+
+            document.getElementById('total-atasan-preview').textContent = `Atasan: ${totalAtasan} Pcs`;
+            document.getElementById('total-stelan-preview').textContent = `Stelan: ${totalStelan} Pcs`;
+
+            let finalTotal = 0;
+            const previewEl = document.getElementById('total-qty-preview');
+            
+            if (category === 'Stelan') {
+                finalTotal = Math.max(totalAtasan, totalStelan);
+                previewEl.textContent = `${finalTotal} Stel`;
+            } else {
+                finalTotal = totalAtasan;
+                previewEl.textContent = `${finalTotal} Pcs Atasan`;
+            }
+
+            return finalTotal;
+        }
+
+        function trackOrder() {
+            const query = document.getElementById('tracking-input').value.trim().toLowerCase();
+            const resultPanel = document.getElementById('tracking-result');
+            const emptyPanel = document.getElementById('tracking-empty');
+
+            if (!query) {
+                showToast("Masukkan ID Pesanan, Nama, atau Desain terlebih dahulu.", "error");
+                return;
+            }
+
+            const matchedOrder = orders.find(o => 
+                o.id.toLowerCase() === query || 
+                o.customerName.toLowerCase().includes(query) ||
+                (o.designName && o.designName.toLowerCase().includes(query))
+            );
+
+            if (!matchedOrder) {
+                resultPanel.classList.add('hidden');
+                emptyPanel.classList.remove('hidden');
+                return;
+            }
+
+            emptyPanel.classList.add('hidden');
+            resultPanel.classList.remove('hidden');
+
+            document.getElementById('track-id').textContent = matchedOrder.id;
+            document.getElementById('track-jersey-category').textContent = `Kategori: ${matchedOrder.jerseyCategory || 'Atasan'}`;
+            document.getElementById('track-name').textContent = matchedOrder.customerName;
+            document.getElementById('track-design-name').textContent = `Desain: ${matchedOrder.designName || 'Biasa'}`;
+            document.getElementById('track-phone').textContent = matchedOrder.phone;
+            document.getElementById('track-deadline').textContent = matchedOrder.deadline;
+            
+            const today = new Date();
+            const diffTime = new Date(matchedOrder.deadline) - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const daysLeftEl = document.getElementById('track-days-left');
+            if (diffDays < 0) {
+                daysLeftEl.textContent = `Melewati tenggat waktu ${Math.abs(diffDays)} hari!`;
+                daysLeftEl.className = "text-xs text-rose-600 font-bold block";
+            } else {
+                daysLeftEl.textContent = `Sisa waktu ${diffDays} hari lagi`;
+                daysLeftEl.className = "text-xs text-emerald-600 font-semibold block";
+            }
+
+            document.getElementById('track-fabric').textContent = matchedOrder.fabricType || 'Bahan Standar';
+            document.getElementById('track-collar').textContent = matchedOrder.collarType || 'Kerah Standar';
+            document.getElementById('track-qty').textContent = `${matchedOrder.totalQty} Pasang/Pcs`;
+            document.getElementById('track-notes').textContent = matchedOrder.designNotes || 'Tidak ada catatan khusus.';
+
+            // Render Rincian Ukuran Detail v1.8 (Terpisah antara Atasan & Stelan)
+            const sizesDetailEl = document.getElementById('track-sizes-detail');
+            const sA = matchedOrder.sizesAtasan || matchedOrder.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+            
+            let sizesHtml = `<div><strong>Ukuran Atasan (Baju):</strong> XS:${sA.xs} | S:${sA.s} | M:${sA.m} | L:${sA.l} | XL:${sA.xl} | XXL:${sA.xxl}</div>`;
+            if (matchedOrder.jerseyCategory === 'Stelan') {
+                const sS = matchedOrder.sizesStelan || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+                sizesHtml += `<div class="mt-1 pt-1 border-t border-indigo-100"><strong>Ukuran Stelan:</strong> XS:${sS.xs} | S:${sS.s} | M:${sS.m} | L:${sS.l} | XL:${sS.xl} | XXL:${sS.xxl}</div>`;
+            }
+            sizesDetailEl.innerHTML = sizesHtml;
+
+            // Render Galeri Mockup Lacak Pesanan
+            const mockupGallery = document.getElementById('track-mockup-gallery');
+            mockupGallery.innerHTML = '';
+            
+            const images = matchedOrder.mockupImages || (matchedOrder.mockupImage ? [matchedOrder.mockupImage] : []);
+            if (images.length > 0) {
+                images.forEach((img, idx) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = "relative border rounded-lg overflow-hidden bg-white aspect-square flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-indigo-500 transition duration-150";
+                    imgContainer.innerHTML = `
+                        <img src="${img}" class="w-full h-full object-contain p-1" alt="Mockup ${idx + 1}">
+                    `;
+                    imgContainer.onclick = () => {
+                        const w = window.open();
+                        w.document.write(`<img src="${img}" style="max-width:100%; height:auto; display:block; margin:20px auto; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">`);
+                    };
+                    mockupGallery.appendChild(imgContainer);
+                });
+            } else {
+                mockupGallery.innerHTML = `
+                    <div class="col-span-2 py-6 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-lg">
+                        Tidak Ada Mockup Gambar
+                    </div>
+                `;
+            }
+
+            // Render Stepper visual
+            const stages = ['Antrian', 'Desain', 'Cetak', 'Press', 'Jahit', 'QC', 'Selesai'];
+            const currentIndex = stages.indexOf(matchedOrder.status);
+
+            stages.forEach((stage, idx) => {
+                const stepEl = document.getElementById(`step-${stage}`);
+                if (!stepEl) return;
+
+                const circle = stepEl.querySelector('div');
+                const text = stepEl.querySelector('span');
+
+                if (idx <= currentIndex) {
+                    circle.className = "w-10 h-10 rounded-full flex items-center justify-center bg-indigo-600 text-white border-4 border-white font-bold text-sm shadow-md transition-all";
+                    text.className = "text-xs font-extrabold text-indigo-700 mt-2";
+                } else {
+                    circle.className = "w-10 h-10 rounded-full flex items-center justify-center bg-slate-200 text-slate-500 border-4 border-white font-bold text-sm transition-all";
+                    text.className = "text-xs font-bold text-slate-400 mt-2";
+                }
+            });
+        }
+
+        function openOrderModal() {
+            document.getElementById('order-form').reset();
+            document.getElementById('order-id').value = '';
+            currentMockupImages = []; 
+            renderMockupThumbnails();
+            
+            document.getElementById('modal-title').textContent = 'Tambah Pesanan Baru';
+            
+            const nextWeek = new Date();
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            document.getElementById('deadline').value = nextWeek.toISOString().substring(0, 10);
+
+            // Bersihkan input rincian ukuran (Dua baris)
+            const sizesList = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+            sizesList.forEach(s => {
+                document.getElementById(`size-atasan-${s}`).value = 0;
+                document.getElementById(`size-stelan-${s}`).value = 0;
+            });
+
+            document.getElementById('total-qty-preview').textContent = "0 Pcs/Stel";
+            toggleSizingFields(); // Sembunyikan default stelan karena 'Atasan' default
+            document.getElementById('order-modal').classList.remove('hidden');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('order-modal').classList.add('hidden');
+        }
+
+        function saveOrder(event) {
+            event.preventDefault();
+
+            const orderIdVal = document.getElementById('order-id').value;
+            const category = document.getElementById('jersey-category').value;
+
+            // Ambil data ukuran dari dua baris input
+            const sizesAtasan = {
+                xs: parseInt(document.getElementById('size-atasan-xs').value) || 0,
+                s: parseInt(document.getElementById('size-atasan-s').value) || 0,
+                m: parseInt(document.getElementById('size-atasan-m').value) || 0,
+                l: parseInt(document.getElementById('size-atasan-l').value) || 0,
+                xl: parseInt(document.getElementById('size-atasan-xl').value) || 0,
+                xxl: parseInt(document.getElementById('size-atasan-xxl').value) || 0
+            };
+
+            const sizesStelan = {
+                xs: parseInt(document.getElementById('size-stelan-xs').value) || 0,
+                s: parseInt(document.getElementById('size-stelan-s').value) || 0,
+                m: parseInt(document.getElementById('size-stelan-m').value) || 0,
+                l: parseInt(document.getElementById('size-stelan-l').value) || 0,
+                xl: parseInt(document.getElementById('size-stelan-xl').value) || 0,
+                xxl: parseInt(document.getElementById('size-stelan-xxl').value) || 0
+            };
+
+            const totalQty = calculateTotalPcs();
+
+            if (totalQty <= 0) {
+                showToast("Oops! Harap masukkan jumlah ukuran minimal 1 Pasang/Pcs.", "error");
+                return;
+            }
+
+            let orderToSave = {};
+            if (orderIdVal) {
+                orderToSave = {
+                    id: orderIdVal,
+                    customerName: document.getElementById('customer-name').value,
+                    phone: document.getElementById('customer-phone').value,
+                    designName: document.getElementById('design-name').value,
+                    collarType: document.getElementById('collar-type').value,
+                    fabricType: document.getElementById('fabric-type').value,
+                    jerseyCategory: category,
+                    designNotes: document.getElementById('design-notes').value,
+                    deadline: document.getElementById('deadline').value,
+                    priority: document.getElementById('priority').value,
+                    status: orders.find(o => o.id === orderIdVal)?.status || 'Antrian',
+                    sizesAtasan: sizesAtasan,
+                    sizesStelan: sizesStelan,
+                    totalQty: totalQty,
+                    mockupImages: currentMockupImages,
+                    createdAt: orders.find(o => o.id === orderIdVal)?.createdAt || new Date().toISOString().substring(0, 10)
+                };
+                showToast(`Menyimpan pembaruan Pesanan #${orderIdVal}...`, 'success');
+            } else {
+                const newId = `JR-${Math.floor(10000 + Math.random() * 90000)}`;
+                orderToSave = {
+                    id: newId,
+                    customerName: document.getElementById('customer-name').value,
+                    phone: document.getElementById('customer-phone').value,
+                    designName: document.getElementById('design-name').value,
+                    collarType: document.getElementById('collar-type').value,
+                    fabricType: document.getElementById('fabric-type').value,
+                    jerseyCategory: category,
+                    designNotes: document.getElementById('design-notes').value,
+                    deadline: document.getElementById('deadline').value,
+                    priority: document.getElementById('priority').value,
+                    status: 'Antrian',
+                    sizesAtasan: sizesAtasan,
+                    sizesStelan: sizesStelan,
+                    totalQty: totalQty,
+                    mockupImages: currentMockupImages,
+                    createdAt: new Date().toISOString().substring(0, 10)
+                };
+                showToast(`Menyimpan Pesanan Baru #${newId}...`, 'success');
+            }
+
+            fetch('api.php?action=save_order', {
+                method: 'POST',
+                body: JSON.stringify(orderToSave)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    fetchOrders();
+                } else {
+                    showToast('Gagal menyimpan pesanan', 'error');
+                }
+            });
+            
+            closeOrderModal();
+        }
+
+        function editOrder(id) {
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+
+            document.getElementById('order-id').value = order.id;
+            document.getElementById('customer-name').value = order.customerName;
+            document.getElementById('customer-phone').value = order.phone;
+            document.getElementById('design-name').value = order.designName || '';
+            document.getElementById('collar-type').value = order.collarType || '';
+            document.getElementById('fabric-type').value = order.fabricType || '';
+            document.getElementById('jersey-category').value = order.jerseyCategory || 'Atasan';
+            document.getElementById('design-notes').value = order.designNotes || '';
+            document.getElementById('deadline').value = order.deadline;
+            document.getElementById('priority').value = order.priority;
+
+            // Membuka skema ukuran terpisah
+            const sA = order.sizesAtasan || order.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+            const sS = order.sizesStelan || (order.jerseyCategory === 'Stelan' ? (order.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 }) : { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 });
+
+            const sizesList = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+            sizesList.forEach(item => {
+                document.getElementById(`size-atasan-${item}`).value = sA[item] || 0;
+                document.getElementById(`size-stelan-${item}`).value = sS[item] || 0;
+            });
+
+            currentMockupImages = order.mockupImages || (order.mockupImage ? [order.mockupImage] : []);
+            renderMockupThumbnails();
+
+            document.getElementById('modal-title').textContent = `Edit Pesanan #${order.id}`;
+            document.getElementById('total-qty-preview').textContent = `${order.totalQty || 0} Pasang/Pcs`;
+            
+            toggleSizingFields(); // Muncul/sembunyikan baris ukuran stelan
+            document.getElementById('order-modal').classList.remove('hidden');
+        }
+
+        function deleteOrder(id) {
+            deleteIdQueue = id;
+            document.getElementById('confirm-modal-text').textContent = `Apakah Anda yakin ingin menghapus data Pesanan #${id}? Tindakan ini tidak dapat dibatalkan.`;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function executeDeleteOrder(id) {
+            fetch('api.php?action=delete_order', {
+                method: 'DELETE',
+                body: JSON.stringify({id: id})
+            }).then(() => {
+                orders = orders.filter(o => o.id !== id);
+                showToast(`Pesanan #${id} telah dihapus dari sistem database.`, 'success');
+                refreshApp();
+            });
+        }
+
+        // Key LocalStorage tidak digunakan lagi (menggunakan MySQL)
+        function saveToStorage() {
+            // Function preserved to avoid reference errors, logic handled by API
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(orders, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `backup_tracking_jersey_v1_8_${new Date().toISOString().substring(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast("Selesai! File cadangan JSON berhasil diunduh.", "success");
+        }
+
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (Array.isArray(imported)) {
+                        showToast("Memproses pemulihan data ke database...", "success");
+                        let successCount = 0;
+                        for (let o of imported) {
+                            // Validasi & migrasi saat impor file eksternal
+                            if (!o.sizesAtasan) o.sizesAtasan = o.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+                            if (!o.sizesStelan) o.sizesStelan = o.jerseyCategory === 'Stelan' ? (o.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 }) : { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+                            
+                            // Save to database
+                            const res = await fetch('api.php?action=save_order', {
+                                method: 'POST',
+                                body: JSON.stringify(o)
+                            });
+                            const data = await res.json();
+                            if(data.success) successCount++;
+                        }
+                        showToast(`Keren! ${successCount} Data berhasil dipulihkan dari file backup.`, "success");
+                        // Refresh data from server
+                        fetchOrders();
+                    } else {
+                        showToast("Format file salah. Harus berupa list JSON.", "error");
+                    }
+                } catch (err) {
+                    showToast("Gagal membaca file backup.", "error");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+            // Reset input file agar bisa import file yang sama lagi jika perlu
+            event.target.value = '';
+        }
+
+        function printSPK(id) {
+            const order = orders.find(o => o.id === id);
+            if (!order) return;
+
+            document.getElementById('print-spk-id').textContent = order.id;
+            document.getElementById('print-spk-date').textContent = new Date().toLocaleDateString('id-ID');
+            document.getElementById('print-cust-name').textContent = `: ${order.customerName}`;
+            document.getElementById('print-cust-phone').textContent = `: ${order.phone}`;
+            document.getElementById('print-cust-deadline').textContent = `: ${order.deadline}`;
+            
+            document.getElementById('print-jersey-design-name').textContent = `: ${order.designName || 'Biasa'}`;
+            document.getElementById('print-jersey-category').textContent = `: ${(order.jerseyCategory || 'Atasan').toUpperCase()}`;
+            document.getElementById('print-jersey-material').textContent = `: ${order.fabricType || '-'}`;
+            document.getElementById('print-jersey-collar').textContent = `: ${order.collarType || '-'}`;
+            document.getElementById('print-jersey-notes').textContent = order.designNotes || 'Tidak ada catatan desain khusus.';
+
+            // Setup Data Ukuran di SPK v1.8 (Dua baris terpisah di SPK)
+            const sA = order.sizesAtasan || order.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 };
+            const sizesList = ['xs', 's', 'm', 'l', 'xl', 'xxl'];
+            
+            let totalAtasan = 0;
+            sizesList.forEach(item => {
+                const val = sA[item] || 0;
+                totalAtasan += val;
+                document.getElementById(`p-atasan-${item}`).textContent = val;
+            });
+            document.getElementById('p-atasan-total').textContent = `${totalAtasan} Pcs`;
+
+            const stelanRow = document.getElementById('print-row-stelan');
+            if (order.jerseyCategory === 'Stelan') {
+                stelanRow.classList.remove('hidden');
+                const sS = order.sizesStelan || (order.sizes || { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0 });
+                let totalStelan = 0;
+                sizesList.forEach(item => {
+                    const val = sS[item] || 0;
+                    totalStelan += val;
+                    document.getElementById(`p-stelan-${item}`).textContent = val;
+                });
+                document.getElementById('p-stelan-total').textContent = `${totalStelan} Pcs`;
+                document.getElementById('p-final-total').textContent = `${Math.max(totalAtasan, totalStelan)} Stel`;
+            } else {
+                stelanRow.classList.add('hidden');
+                document.getElementById('p-final-total').textContent = `${totalAtasan} Pcs Atasan`;
+            }
+
+            // Render Multi-Mockup di cetak SPK (Sangat kecil demi 1 halaman)
+            const printMockupGallery = document.getElementById('print-mockup-gallery');
+            printMockupGallery.innerHTML = '';
+            
+            const printImages = order.mockupImages || (order.mockupImage ? [order.mockupImage] : []);
+            if (printImages.length > 0) {
+                printImages.forEach((img, idx) => {
+                    const imgEl = document.createElement('img');
+                    imgEl.src = img;
+                    // Ukuran gambar sangat dibatasi agar grid 5 kolom tetap rapi dalam 1 halaman
+                    imgEl.className = "max-h-32 w-full object-contain border border-slate-300 rounded bg-white p-0.5 mx-auto aspect-square";
+                    imgEl.alt = `Mockup Cetak ${idx + 1}`;
+                    printMockupGallery.appendChild(imgEl);
+                });
+                printMockupGallery.className = "grid grid-cols-2 gap-1.5 w-full items-start justify-center";
+            } else {
+                printMockupGallery.className = "grid grid-cols-1 gap-1.5 w-full";
+                printMockupGallery.innerHTML = `<div class="text-slate-400 text-[8px] text-center border border-dashed border-slate-300 rounded py-4 w-full">Tidak Ada Mockup Gambar</div>`;
+            }
+
+            // Trigger dialog cetak bawaan browser
+            window.print();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-slate-800 text-white";
+            if (type === 'success') bgClass = "bg-emerald-600 text-white";
+            if (type === 'error') bgClass = "bg-rose-600 text-white";
+
+            toast.className = `${bgClass} flex items-center space-x-3 px-5 py-3 rounded-xl shadow-xl border border-white/10 text-sm font-semibold transform translate-y-2 opacity-0 transition duration-300 pointer-events-auto`;
+            toast.innerHTML = `<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

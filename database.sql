@@ -1,0 +1,31 @@
+CREATE DATABASE IF NOT EXISTS alilogis_butbet;
+USE alilogis_butbet;
+
+CREATE TABLE IF NOT EXISTS `orders` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `customer_name` VARCHAR(150) NOT NULL,
+    `phone` VARCHAR(20),
+    `design_name` VARCHAR(150) NOT NULL,
+    `collar_type` VARCHAR(50),
+    `fabric_type` VARCHAR(50),
+    `jersey_category` VARCHAR(50),
+    `design_notes` TEXT,
+    `deadline` DATE,
+    `priority` ENUM('Rendah', 'Sedang', 'Tinggi') DEFAULT 'Sedang',
+    `status` ENUM('Antrian', 'Desain', 'Cetak', 'Press', 'Jahit', 'QC', 'Selesai') DEFAULT 'Antrian',
+    `size_atasan_xs` INT DEFAULT 0,
+    `size_atasan_s` INT DEFAULT 0,
+    `size_atasan_m` INT DEFAULT 0,
+    `size_atasan_l` INT DEFAULT 0,
+    `size_atasan_xl` INT DEFAULT 0,
+    `size_atasan_xxl` INT DEFAULT 0,
+    `size_stelan_xs` INT DEFAULT 0,
+    `size_stelan_s` INT DEFAULT 0,
+    `size_stelan_m` INT DEFAULT 0,
+    `size_stelan_l` INT DEFAULT 0,
+    `size_stelan_xl` INT DEFAULT 0,
+    `size_stelan_xxl` INT DEFAULT 0,
+    `total_qty` INT DEFAULT 0,
+    `mockup_images` JSON,
+    `created_at` DATE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
