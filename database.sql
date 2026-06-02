@@ -1,5 +1,3 @@
-CREATE DATABASE IF NOT EXISTS alilogis_butbet;
-USE alilogis_butbet;
 
 CREATE TABLE IF NOT EXISTS `orders` (
     `id` VARCHAR(50) PRIMARY KEY,
