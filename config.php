@@ -1,8 +1,8 @@
 <?php
-$host = "localhost";
-$dbname = "alilogis_butbet";
-$username = "alilogis_butbet";
-$password = "JwSKVWdcFujDMbrgyzbs";
+$host = getenv('DB_HOST') ?: "localhost";
+$dbname = getenv('DB_NAME') ?: "alilogis_butbet";
+$username = getenv('DB_USER') ?: "alilogis_butbet";
+$password = getenv('DB_PASS') ?: "JwSKVWdcFujDMbrgyzbs";
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
